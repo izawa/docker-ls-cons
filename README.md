@@ -1,24 +1,21 @@
 # Docker::Ls::Cons
 
-TODO: Write a gem description
+docker container list program.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Create gem file.
 
-    gem 'docker-ls-cons'
+    $ rake buildgem 'docker-ls-cons'
 
-And then execute:
+install it yourself as:
 
-    $ bundle
+    $ gem install pkg/docker-ls-cons-x.xx.gem
 
-Or install it yourself as:
-
-    $ gem install docker-ls-cons
 
 ## Usage
 
-TODO: Write usage instructions here
+    $ docker-ls-cons [-a]
 
 ## Contributing
 

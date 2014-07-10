@@ -1,3 +1,40 @@
 #!/usr/bin/env ruby
 
 require 'docker/ls/cons'
+
+# parsing options
+params = ARGV.getopts('a')
+
+img_hash = Hash.new
+
+if params['a']
+  cons = Docker::Container.all(:all => true)
+else
+  cons = Docker::Container.all(:running => true)
+end
+
+con_struct = Struct.new("Container", :status, :ipaddr, :command, :up)
+
+cons.each do |con|
+  acon = con_struct.new(con.info['Status'], con.json["NetworkSettings"]["IPAddress"], con.json["Path"].to_s, con.json["State"]["Running"])
+
+
+#binding.pry
+
+  acon_str = (acon.up ? "" : "\e[36m") +  con.id[0,12]  + "\t" + acon.status + "\t" + (acon.ipaddr.length == 0 ? "(none)" : acon.ipaddr) + "\t" + acon.command + "\e[0m"
+
+  if img_hash[con.info['Image']] 
+    img_hash[con.info['Image']].push acon_str
+  else
+    img_hash[con.info['Image']] = [acon_str]
+  end
+end
+
+img_hash.each_key do |key|
+  puts "\e[32m" + key + "\e[0m"
+  img_hash[key].each do | con|
+    print "\t#{con}\n"
+  end
+end
+
+
