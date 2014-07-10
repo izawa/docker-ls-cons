@@ -5,36 +5,47 @@ require 'docker/ls/cons'
 # parsing options
 params = ARGV.getopts('a')
 
-img_hash = Hash.new
 
-if params['a']
-  cons = Docker::Container.all(:all => true)
-else
-  cons = Docker::Container.all(:running => true)
+begin
+  if params['a']
+    cons = Docker::Container.all(:all => true)
+  else
+    cons = Docker::Container.all(:running => true)
+  end
+rescue => e
+  puts "Error #{e.to_s}"
+  puts "did you set DOCKER_HOST ?"
+  exit
 end
 
-con_struct = Struct.new("Container", :status, :ipaddr, :command, :up)
+con_struct = Struct.new("Container", :id, :status, :ipaddr, :command, :up)
+maxlength_hash = {:status => 0, :ipaddr => 0, :command => 0 }
+
+img_hash = Hash.new
 
 cons.each do |con|
-  acon = con_struct.new(con.info['Status'], con.json["NetworkSettings"]["IPAddress"], con.json["Path"].to_s, con.json["State"]["Running"])
-
-
-#binding.pry
-
-  acon_str = (acon.up ? "" : "\e[36m") +  con.id[0,12]  + "\t" + acon.status + "\t" + (acon.ipaddr.length == 0 ? "(none)" : acon.ipaddr) + "\t" + acon.command + "\e[0m"
+  acon = con_struct.new(con.id[0,12], con.info['Status'], con.json["NetworkSettings"]["IPAddress"], con.json["Path"].to_s, con.json["State"]["Running"])
 
   if img_hash[con.info['Image']] 
-    img_hash[con.info['Image']].push acon_str
+    img_hash[con.info['Image']].push acon
   else
-    img_hash[con.info['Image']] = [acon_str]
+    img_hash[con.info['Image']] = [acon]
   end
+
+  maxlength_hash[:status] =
+    [acon.status.length, maxlength_hash[:status]].max
+  maxlength_hash[:ipaddr] =
+    [acon.ipaddr.length, maxlength_hash[:ipaddr]].max
+  maxlength_hash[:command] =
+    [acon.command.length, maxlength_hash[:command]].max
+
 end
 
 img_hash.each_key do |key|
   puts "\e[32m" + key + "\e[0m"
-  img_hash[key].each do | con|
-    print "\t#{con}\n"
+  img_hash[key].each do | acon|
+
+    printf("  %s%s    %#{maxlength_hash[:status]}s  %#{maxlength_hash[:ipaddr]}s  %#{maxlength_hash[:command]}s\e[0m\n", (acon.up ? "" : "\e[36m"), acon.id, acon.status, (acon.ipaddr.length == 0 ? "(none)" : acon.ipaddr), acon.command)
+
   end
 end
-
-
