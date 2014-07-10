@@ -6,7 +6,7 @@ docker container list program.
 
 Create gem file.
 
-    $ rake buildgem 'docker-ls-cons'
+    $ rake build
 
 install it yourself as:
 
