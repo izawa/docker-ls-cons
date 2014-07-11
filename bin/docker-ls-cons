@@ -23,6 +23,11 @@ maxlength_hash = {:status => 0, :ipaddr => 0, :command => 0 }
 
 img_hash = Hash.new
 
+if cons.length == 0
+  puts "No running containers."
+  exit
+end
+
 cons.each do |con|
   acon = con_struct.new(con.id[0,12], con.info['Status'], con.json["NetworkSettings"]["IPAddress"], con.json["Path"].to_s, con.json["State"]["Running"])
 
